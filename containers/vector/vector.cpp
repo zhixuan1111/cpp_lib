@@ -1,76 +1,51 @@
 #include <iostream>
 #include<string>
+#include <stdexcept>  // 用于std::out_of_range
 
 template<typename T>
 class vector
 {
 private:
-    /* data */
     T* head;
     size_t size;
     size_t capacity;
 public:
-    vector(size_t nums);
-    ~vector();
-    T& at(size_t pos); //访问元素；
-    size_t getSize();
-    size_t getCapacity();
-    bool pushBack(int value);
 
-
-};
-template<typename T>
-vector<T>::vector(size_t num)
-{
-    this->head = new T(num);
-    this->capacity = num;
-    for (size_t i = 0; i < num; i++)
+    vector<T>::vector(size_t num)
     {
-        head[i] = T();
+        this->head = new T(num);
+        this->capacity = num;
+        for (size_t i = 0; i < num; i++)
+        {
+            head[i] = T();
+        }  
+    }
+
+    vector<T>::~vector()
+    {
+        delete[] head;
     }
     
-}
-template<typename T>
-vector<T>::~vector()
-{
-}
+    size_t vector<T>::getSize()
+    {
+        return this->size;
+    }
 
-template<typename T>
-size_t vector<T>::getSize()
-{
-    return this->size;
-}
+    size_t vector<T>::getCapacity()
+    {
+        return this->capacity;
+    }
 
-template<typename T>
-size_t vector<T>::getCapacity()
-{
-    return this->capacity;
-}
-
-template<typename T>
-T& vector<T>::at(size_t pos)
-{
-    // if(pos > this->size-1 || pos < 0)
-    // {
-    //     std::cout<<"index out of range"<<std::endl;
-    //     return -1;
-    // }
-    
-    // {
-        int i=0;
-        while (i < pos)
+    T& vector<T>::at(size_t pos)
+    {
+        if (pos >= this->size)
         {
-            i++;
+            throw std::out_of_range("vector::at: 索引越界");
         }
-        return this->head[i];
-    // }
-}
+        return this->head[pos];
+    }
+};
 
-template<typename T>
-bool vector<T>::pushBack(int value)
-{
-    return true;
-}
 int main()
 {
     vector<std::string> a(5);

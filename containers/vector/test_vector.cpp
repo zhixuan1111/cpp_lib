@@ -8,7 +8,7 @@ void test_basic_functions() {
     
     vector<int> v;
     assert(v.empty() == true);
-    assert(v.size() == 0);
+    assert(v.getSize() == 0);
     
     v.push_back(1);
     v.push_back(2);

@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 
+//合并数组的函数
 void mergeArr(std::vector<int> &arr, int l, int m, int r) {
   int l1 = m - l + 1;
   int l2 = r - m;

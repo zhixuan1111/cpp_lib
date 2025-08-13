@@ -1,8 +1,9 @@
+#include <algorithm>
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
-//合并数组的函数
+
+// 合并数组的函数
 void mergeArr(std::vector<int> &arr, int l, int m, int r) {
   int l1 = m - l + 1;
   int l2 = r - m;
@@ -60,9 +61,7 @@ int main() {
   std::vector<int> arr = {12, 11, 13, 5, 6, 7};
   std::cout << "before sort: ";
   printArray(arr);
-
   mergeSort(arr, 0, arr.size() - 1);
-
   std::cout << "after sort: ";
   printArray(arr);
 

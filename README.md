@@ -42,12 +42,11 @@
 # 三、C++新特性
 需要了解的新特性有智能指针、`lambada`表达式
 ## 3.1 智能指针
-
 ### 3.1.1 unique_ptr
 
 `unique_ptr` 是 C++11 引入的智能指针，实现了**独占所有权**语义，用于管理动态分配的内存，确保同一时间只有一个指针拥有对资源的所有权。
 
-#### 3.1.1.1 核心特性
+#### (1) 核心特性
 
 1. **独占所有权**  
    同一时间只能有一个 `unique_ptr` 指向特定对象，所有权不可共享，这与 `shared_ptr` 的共享所有权形成鲜明对比。
@@ -61,7 +60,7 @@
    - 移动后，原 `unique_ptr` 会被置为 `nullptr`
    - 示例：`unique_ptr<int> p2 = std::move(p1);`（p1 失去所有权，p2 获得所有权）
 
-#### 3.1.1.2 实现要点
+#### (2) 实现要点
 
 1. **禁用复制机制**  
    通过 `delete` 关键字显式删除复制构造和复制赋值运算符：
@@ -95,7 +94,7 @@
    - 提供 `reset()` 方法显式释放资源或更换管理的对象
    - 提供 `release()` 方法释放所有权但不释放资源
 
-#### 3.1.1.3 典型用法
+#### (3) 典型用法
 
 ```cpp
 // 创建 unique_ptr
@@ -114,7 +113,7 @@ auto deleter = [](int* p) {
 std::unique_ptr<int, decltype(deleter)> ptr3(new int(10), deleter);
 ```
 
-#### 3.1.1.4 优势总结
+#### (4) 优势总结
 
 - **内存安全**：自动释放资源，避免内存泄漏
 - **高性能**：相比 `shared_ptr` 无需维护引用计数，开销更小
@@ -122,15 +121,14 @@ std::unique_ptr<int, decltype(deleter)> ptr3(new int(10), deleter);
 - **灵活性**：可用于容器存储，作为函数返回值传递（通过移动语义）
 
 ### 3.1.2 shared_ptr
-
-####  3.1.2.1 核心特点
+####  (1) 核心特点
 
 `shared_ptr` 是 C++ 标准库提供的智能指针，实现了**共享所有权**机制：
 - 多个 `shared_ptr` 可指向同一块动态分配的内存
 - 通过**引用计数（reference count）** 跟踪共享该资源的指针数量
 - 当最后一个指向资源的 `shared_ptr` 被销毁或重置时，内存会自动释放
 
-####  3.1.2.2 实现原理
+####  (2) 实现原理
 
 1. **内部组成**
 - `T* ptr`：指向实际管理的对象（原始指针）
@@ -143,7 +141,7 @@ std::unique_ptr<int, decltype(deleter)> ptr3(new int(10), deleter);
 - 访问运算符：`operator*()`（解引用）、`operator->()`
 - 辅助方法：`get()`（获取原始指针）、`use_count()`（获取引用计数）、`swap()`（交换内容）
 
-####  3.1.2.3 线程安全特性
+####  (3) 线程安全特性
 
 - **部分线程安全**：
   - 标准库的 `std::shared_ptr` 保证**引用计数的修改是原子操作**（线程安全）
@@ -153,7 +151,7 @@ std::unique_ptr<int, decltype(deleter)> ptr3(new int(10), deleter);
   - 简单实现可能不保证引用计数的线程安全
   - 多线程环境下操作同一个 `shared_ptr` 可能导致计数错乱
 
-####  3.1.2.4 实现代码示例
+####  (4) 实现代码示例
 
 ```cpp
 #include <iostream>
@@ -274,7 +272,7 @@ shared_ptr<T> make_shared(Args&&... args) {
 }
 ```
 
-####  3.1.2.5 make_shared 相关知识点
+####  (5) make_shared 相关知识点
 
 `make_shared` 是创建 `shared_ptr` 的推荐方式，具有以下优势：
 
@@ -294,7 +292,7 @@ shared_ptr<T> make_shared(Args&&... args) {
 
 `weak_ptr` 是 C++ 智能指针库中的重要组成部分，主要用于解决 `shared_ptr` 可能导致的循环引用问题。它本身不拥有对象的所有权，仅作为 `shared_ptr` 的观察者存在，持有被观察对象的弱引用，不会影响被观察者的生命周期。
 
-#### 3.1.3.1 主要特性
+#### (1) 主要特性
 
 1. **不控制对象生命周期**  
    `weak_ptr` 不会增加所指向对象的引用计数，当最后一个 `shared_ptr` 被销毁时，即使有 `weak_ptr` 指向该对象，对象也会被释放。
@@ -305,7 +303,7 @@ shared_ptr<T> make_shared(Args&&... args) {
 3. **需转换为 `shared_ptr` 才能访问对象**  
    `weak_ptr` 本身不能直接访问对象，必须通过 `lock()` 方法转换为 `shared_ptr`，这确保了在访问时对象仍然存在。
 
-#### 3.1.3.2 实现原理
+#### (2) 实现原理
 
 ##### 控制块（Control Block）
 
@@ -332,7 +330,7 @@ shared_ptr<T> make_shared(Args&&... args) {
 4. **循环引用解决原理**  
    在循环引用场景中，`weak_ptr` 仅增加弱引用计数，不影响强引用计数。当外部 `shared_ptr` 销毁时，强引用计数可正常减为 0，对象被销毁，打破循环。
 
-#### 3.1.3.4 简化实现示例
+#### (3) 简化实现示例
 
 ```cpp
 // 控制块结构（简化版）
@@ -382,37 +380,148 @@ public:
 # 四、设计模式
 ## 4.1 单例模式：✅
 
-### 4.1.1 单例模式实现方式之一：
-1. 私有化构造函数，删除拷贝构造函数，删除复制运算符函数
-2. 提供全局访问点：
-    - 实现返回类唯一实例的静态成员函数`getInstance()`
-    - 函数内初始化一个局部静态成员变量`instance`
-    - 函数返回局部静态成员变量`instance`的引用
+单例模式（Singleton Pattern）是一种创建型设计模式，核心目标是确保**一个类在整个程序生命周期中仅存在一个实例**，并提供一个全局唯一的访问点，避免频繁创建销毁对象带来的资源开销，同时保证实例的全局可访问性。
 
+
+### 4.1.1、核心实现方式：局部静态变量懒汉式（推荐）
+该实现方式是 C++11 及以上标准中最简洁、安全的单例实现之一，兼具懒加载（Lazy Initialization）和线程安全特性。
+
+#### (1) 实现核心步骤
+- **私有化构造相关函数**：杜绝外部通过构造、拷贝、赋值创建新实例，确保实例唯一性。
+  - 私有化默认构造函数：防止外部直接 `new Singleton()` 创建对象。
+  - 删除拷贝构造函数：防止外部通过拷贝（如 `Singleton s = Singleton::getInstance()`）创建新实例。
+  - 删除复制赋值运算符：防止外部通过赋值（如 `Singleton s1; s1 = Singleton::getInstance()`）创建新实例。
+- **提供全局访问点**：通过静态成员函数 `getInstance()` 控制实例的创建与访问，内部使用**局部静态变量**存储唯一实例，确保仅初始化一次。
+
+#### (2) 代码实现
 ```cpp
 class Singleton {
 private:
-  Singleton() = default; // 构造函数私有化,并且使用默认实现
-  Singleton(const Singleton &a) = delete;            // 删除拷贝构造
-  Singleton &operator=(const Singleton &a) = delete; // 删除复制运算符函数
+    // 1. 私有化默认构造函数（允许类内初始化，此处使用默认实现）
+    Singleton() = default;
+
+    // 2. 删除拷贝构造函数（禁止外部拷贝实例）
+    Singleton(const Singleton& other) = delete;
+
+    // 3. 删除复制赋值运算符（禁止外部赋值实例）
+    Singleton& operator=(const Singleton& other) = delete;
+
+    // （可选）C++11 及以上可删除移动构造和移动赋值，进一步杜绝转移实例
+    Singleton(Singleton&& other) = delete;
+    Singleton& operator=(Singleton&& other) = delete;
+
 public:
-  static Singleton& getInstance() {
-    static Singleton instance;
-    return instance;
-  }
+    // 4. 全局访问点：返回类的唯一实例（局部静态变量确保仅初始化一次）
+    static Singleton& getInstance() {
+        // 局部静态变量特性：首次调用 getInstance() 时初始化，后续调用直接返回已存在的实例
+        static Singleton instance;
+        return instance;
+    }
+
+    // ------------------------------
+    // （示例）类的其他成员函数（非核心）
+    // ------------------------------
+    void doSomething() {
+        std::cout << "Singleton instance is working." << std::endl;
+    }
 };
 ```
 
-### 4.1.2 单例模式注意事项
-1. **类的静态成员变量需要在类外进行初始化**。若是使用*返回唯一实例指针*的方式来实现单例模式的化需要在类内定义静态成员指针并在类外初始化
-2. **类的静态成员函数默认情况下只能操作静态成员变量**。因为静态成员函数不属于类分身，若要操作非静态成员可以向函数内传实例或者this指针
+#### (3) 调用方式
+```cpp
+// 全局唯一访问方式：通过静态函数获取实例，无需手动创建
+Singleton& instance = Singleton::getInstance();
+instance.doSomething(); // 调用实例的成员函数
+```
 
-### 4.1.3 单例模式线程安全问题
-1. 上述代码在**C++11标准及以上**是线程安全的。因为 C++11 规定，静态局部变量的初始化会在首次访问时进行，且编译器会自动加入同步机制，确保即使多线程同时调用`getInstance()`，也只会初始化一次实例。因此确实能保证全局唯一。
-2. "返回指针的实现是否线程安全"需要分情况讨论：
-    - 饿汉式：在程序启动时就初始化静态实例，如`static Singleton* instance = new Singleton();`，返回指针的方式也是线程安全的
-    - 懒汉式：首次调用时才初始化，如`if (instance == nullptr) { instance = new Singleton(); }）`，且未加锁，则不是线程安全的
-3. 即使类对象的创建是线程安全的，对于类内的普通成员来讲，在多线程访问操作时依旧会发生数据竞争的问题
+
+### 4.1.2 关键注意事项
+#### (1) 静态成员变量的初始化规则
+若采用「返回指针」而非「返回引用」的实现方式（如传统懒汉式），需在**类内声明静态成员指针**，并在**类外全局作用域初始化**（避免未初始化的野指针问题）。
+
+示例（返回指针的传统实现，需额外注意线程安全）：
+```cpp
+class Singleton {
+private:
+    // 类内声明静态成员指针（存储实例地址）
+    static Singleton* instance;
+
+    Singleton() = default;
+    Singleton(const Singleton&) = delete;
+    Singleton& operator=(const Singleton&) = delete;
+
+public:
+    static Singleton* getInstance() {
+        // 注意：此代码在 C++11 前非线程安全（需手动加锁）
+        if (instance == nullptr) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+};
+
+// 类外初始化静态成员指针（必须！否则链接时会报错）
+Singleton* Singleton::instance = nullptr;
+```
+
+#### (2) 静态成员函数的访问规则
+- 静态成员函数（如 `getInstance()`）**不属于任何类实例**，没有 `this` 指针，因此默认只能访问「静态成员变量/函数」。
+- 若需在静态函数中操作「非静态成员」，需显式传入类实例（如通过 `getInstance()` 获取实例后调用非静态成员）。
+
+
+### 4.1.3 线程安全深度解析
+单例模式的线程安全核心在于**避免多线程同时初始化实例导致的「重复创建」问题**，不同实现方式的线程安全性差异较大，需结合 C++ 标准版本判断。
+
+#### (1) 局部静态变量懒汉式（本文核心实现）
+- **C++11 及以上**：**线程安全**。  
+  C++11 标准明确规定：「局部静态变量的初始化会在首次访问时进行，且编译器会自动插入同步锁（如 `std::mutex`），确保即使多线程同时调用 `getInstance()`，也只会初始化一次实例」。
+- **C++11 以下**：**非线程安全**。  
+  旧标准未规定局部静态变量的初始化同步机制，多线程同时进入 `getInstance()` 可能触发多次 `instance` 初始化，导致内存泄漏或实例不唯一。
+
+#### (2) 其他实现方式的线程安全性
+| 实现方式       | 核心逻辑                                  | 线程安全性（C++11+） | 优缺点                                  |
+|----------------|-------------------------------------------|----------------------|-----------------------------------------|
+| 饿汉式（指针） | 程序启动时初始化静态指针（`static Singleton* instance = new Singleton();`） | 安全                 | 优点：无需锁，效率高；缺点：提前占用内存，无法懒加载 |
+| 传统懒汉式（指针） | 首次调用时判断 `instance == nullptr` 后初始化 | 非安全（需手动加锁） | 优点：懒加载；缺点：需手动实现锁机制，易出现死锁或性能问题 |
+
+##### 传统懒汉式的线程安全优化（手动加锁）
+若需在 C++11 以下环境使用懒汉式，需通过互斥锁（`std::mutex`）保证初始化唯一：
+```cpp
+#include <mutex>
+
+class Singleton {
+private:
+    static Singleton* instance;
+    static std::mutex mtx; // 互斥锁，保护实例初始化
+
+    Singleton() = default;
+    Singleton(const Singleton&) = delete;
+    Singleton& operator=(const Singleton&) = delete;
+
+public:
+    static Singleton* getInstance() {
+        // 双重检查锁定（Double-Checked Locking）：减少锁竞争开销
+        if (instance == nullptr) { // 第一次检查：无锁，快速判断是否已初始化
+            std::lock_guard<std::mutex> lock(mtx); // 加锁
+            if (instance == nullptr) { // 第二次检查：防止多线程等待锁后重复初始化
+                instance = new Singleton();
+            }
+        }
+        return instance;
+    }
+};
+
+// 类外初始化静态成员
+Singleton* Singleton::instance = nullptr;
+std::mutex Singleton::mtx;
+```
+
+#### (3) 注意：实例创建安全 ≠ 成员访问安全
+即使实例的创建过程是线程安全的，**多线程对实例的「非静态成员变量/函数」的并发操作仍可能引发数据竞争**（如多个线程同时调用 `instance->modifyData()` 修改同一成员变量）。
+
+解决方案：
+- 对非静态成员的读写操作加锁（如 `std::mutex`）。
+- 使用线程安全的数据结构（如 `std::atomic` 修饰成员变量）。
 
 # 五、并发组件
 ## 5.1 线程池
@@ -422,8 +531,52 @@ public:
 ## 6.2 TCP
 ## 6.3 HTTP
 ## 6.4 IP
-# 七、数据库
+
+# 七、数据库(SQLite)
 学会SQL数据库常见的增删查改操作
+
+## 7.1 增（INSERT）操作
+
+用于向表中插入一条或多条记录。
+```sql
+INSERT INTO 表名 (列1, 列2, ...) VALUES (值1, 值2, ...);
+```
+以下示例向 users 表中插入了一条记录，名字为 "Alice"，年龄为 30。
+```sql
+INSERT INTO users (name, age) VALUES ('Alice', 30);
+```
+## 7.2 查（SELECT）操作
+用于从表中查询数据。
+
+```sql
+SELECT 列1, 列2, ... FROM 表名 WHERE 条件;
+```
+该查询从 `users` 表中选择所有年龄大于 25 的用户的名字和年龄。
+```sql
+复制代码
+SELECT name, age FROM users WHERE age > 25;
+```
+
+## 7.3 改（UPDATE）操作
+用于更新表中已存在的记录。
+```sql
+UPDATE 表名 SET 列1 = 值1, 列2 = 值2, ... WHERE 条件;
+```
+将 users 表中名为 "Alice" 的用户的年龄更新为 31。
+```sql
+UPDATE users SET age = 31 WHERE name = 'Alice';
+```
+
+## 7.4 删（DELETE）操作
+用于从表中删除记录。
+```sql
+DELETE FROM 表名 WHERE 条件;
+```
+该语句将从 users 表中删除名为 "Alice" 的用户记录。
+```sql
+DELETE FROM users WHERE name = 'Alice';
+```
+
 # 八、常见开发工具的命令
 ## 8.1 Linux常用命令
 ## 8.2 git常用命令

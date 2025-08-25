@@ -1,35 +1,53 @@
-# shared_ptr知识点
-## shared_ptr实现原理
-1. **核心特点**
-共享所有权。多个 `shared_ptr` 可以指向同一块动态分配的内存，内部通过引用计数（reference count）机制跟踪有多少个指针共享该资源。当最后一个指向该资源的 shared_ptr 被销毁或重置时，内存会自动释放。
-2. **简易实现**
-- `T* ptr`：指向实际管理的对象（原始指针）
-- `size_t* ref_count`：指向一个整数的指针，用于记录当前有多少SharedPtr 实例在共享 ptr 指向的对象
-- `shared_ptr(T *p)`：默认构造函数
-- `shared_ptr(const shared_ptr &other)`：拷贝构造函数
-- `shared_ptr(shared_ptr &&other)`：移动构造函数
-- `~shared_ptr()`：析构函数
--  `shared_ptr &operator=(const shared_ptr &other)`：拷贝赋值运算符函数
-- `shared_ptr &operator=(shared_ptr &&other)`：移动赋值运算符函数
-- `T &operator*()`：重载解引用
-- `T *operator->()`：重载`->`
-## 线程安全问题
-- **部分线程安全**：标准库的 `std::shared_ptr` 保证引用计数的修改是原子操作（线程安全），**但对管理的对象本身不提供线程安全**(指的是`T* ptr`),需要用户自己保证对象的线程安全。
-- **非线程安全**：简单实现可能不保证引用计数的线程安全，多线程环境下操作同一个 `shared_ptr` 可能导致计数错乱。
+# shared_ptr 知识点
 
-## 代码
+## 核心特点
+
+`shared_ptr` 是 C++ 标准库提供的智能指针，实现了**共享所有权**机制：
+- 多个 `shared_ptr` 可指向同一块动态分配的内存
+- 通过**引用计数（reference count）** 跟踪共享该资源的指针数量
+- 当最后一个指向资源的 `shared_ptr` 被销毁或重置时，内存会自动释放
+
+## 实现原理
+
+### 内部组成
+- `T* ptr`：指向实际管理的对象（原始指针）
+- `size_t* ref_count`：指向引用计数的指针，记录当前共享对象的 `shared_ptr` 数量
+
+### 核心接口
+- 构造函数：`shared_ptr(T *p)`（默认构造）、拷贝构造、移动构造
+- 析构函数：`~shared_ptr()`
+- 赋值运算符：拷贝赋值、移动赋值
+- 访问运算符：`operator*()`（解引用）、`operator->()`
+- 辅助方法：`get()`（获取原始指针）、`use_count()`（获取引用计数）、`swap()`（交换内容）
+
+## 线程安全特性
+
+- **部分线程安全**：
+  - 标准库的 `std::shared_ptr` 保证**引用计数的修改是原子操作**（线程安全）
+  - **不对管理的对象本身提供线程安全**（`T* ptr` 指向的对象），需要用户自行保证对象的线程安全
+
+- **非线程安全场景**：
+  - 简单实现可能不保证引用计数的线程安全
+  - 多线程环境下操作同一个 `shared_ptr` 可能导致计数错乱
+
+## 实现代码示例
+
 ```cpp
 #include <iostream>
-template <typename T> class shared_ptr {
+#include <utility> // for std::swap
+
+template <typename T> 
+class shared_ptr {
 private:
-  T *ptr;
-  size_t *ref_count;
+  T* ptr;           // 指向管理的对象
+  size_t* ref_count; // 引用计数指针
+
+  // 释放资源
   void release() {
     if (ref_count) {
       (*ref_count)--;
-      // 判断是否需要彻底释放资源
+      // 当引用计数为0时，彻底释放资源
       if (*ref_count == 0) {
-        /* code */
         delete ptr;
         delete ref_count;
       }
@@ -40,49 +58,59 @@ private:
   }
 
 public:
-  // 默认构造函数
-  shared_ptr(T *p) : ptr(p), ref_count(nullptr) {
+  // 构造函数：从原始指针构造
+  explicit shared_ptr(T* p = nullptr) : ptr(p), ref_count(nullptr) {
     if (p) {
-      ref_count = new size_t(1); // 给引用计数赋初始值
+      ref_count = new size_t(1); // 初始化引用计数为1
     }
   }
 
   // 拷贝构造函数
-  shared_ptr(const shared_ptr &other)
+  shared_ptr(const shared_ptr& other) 
       : ptr(other.ptr), ref_count(other.ref_count) {
-    if (ref_count) { // 防止被拷贝的对象是空的，避免对空指针进行解引用操作
+    if (ref_count) { // 防止拷贝空对象
       (*ref_count)++;
     }
   }
+
   // 移动构造函数
-  shared_ptr(shared_ptr &&other) : ptr(other.ptr), ref_count(other.ref_count) {
+  shared_ptr(shared_ptr&& other) noexcept 
+      : ptr(other.ptr), ref_count(other.ref_count) {
+    // 转移所有权后将源对象指针置空
     other.ptr = nullptr;
     other.ref_count = nullptr;
   }
 
   // 析构函数
-  ~shared_ptr() { release(); }
+  ~shared_ptr() {
+    release();
+  }
 
-  // 拷贝赋值运算符函数
-  shared_ptr &operator=(const shared_ptr &other) {
-    // 需要防止自己复制自己
-    if (this != other) {
+  // 拷贝赋值运算符
+  shared_ptr& operator=(const shared_ptr& other) {
+    // 防止自赋值
+    if (this != &other) {
+      // 先释放当前资源
+      release();
+      // 拷贝新资源
       ptr = other.ptr;
       ref_count = other.ref_count;
-    }
-    if (ref_count) { // 防止被拷贝的对象是空的，避免对空指针进行解引用操作
-      (*ref_count)++;
+      if (ref_count) {
+        (*ref_count)++;
+      }
     }
     return *this;
   }
 
-  // 移动赋值运算符函数
-  shared_ptr &operator=(shared_ptr &&other) {
-    // 需要防止自己复制自己
+  // 移动赋值运算符
+  shared_ptr& operator=(shared_ptr&& other) noexcept {
     if (this != &other) {
-      release(); // 如果当前实例正在管理某个资源,不释放就直接覆盖指针的话，会导致原资源的引用计数丢失，造成内存泄漏
+      // 释放当前资源
+      release();
+      // 转移所有权
       ptr = other.ptr;
       ref_count = other.ref_count;
+      // 源对象指针置空
       other.ptr = nullptr;
       other.ref_count = nullptr;
     }
@@ -90,36 +118,51 @@ public:
   }
 
   // 重载解引用运算符
-  T &operator*() const { return *ptr; }
+  T& operator*() const {
+    return *ptr;
+  }
 
-  // 重载->运算符函数
-  T *operator->() const { return ptr; }
+  // 重载->运算符
+  T* operator->() const {
+    return ptr;
+  }
+
   // 获取原始指针
-  T *get() const { return ptr; }
+  T* get() const {
+    return ptr;
+  }
 
   // 获取当前引用计数
-  size_t use_count() const { return ref_count ? *ref_count : 0; }
-  // 交换两个 SharedPtr 的内容
-  void swap(SharedPtr &other) {
+  size_t use_count() const {
+    return ref_count ? *ref_count : 0;
+  }
+
+  // 交换两个shared_ptr的内容
+  void swap(shared_ptr& other) {
     std::swap(ptr, other.ptr);
     std::swap(ref_count, other.ref_count);
   }
 };
-// 辅助函数：创建 SharedPtr
+
+// 辅助函数：创建shared_ptr（类似std::make_shared）
 template <typename T, typename... Args>
-shared_ptr<T> make_shared(Args &&...args) {
+shared_ptr<T> make_shared(Args&&... args) {
   return shared_ptr<T>(new T(std::forward<Args>(args)...));
 }
 ```
 
-## make_shared有关知识点
-`make_shared` 属于 C++ 智能指针体系的一部分，它是一个函数模板，主要用于创建 `std::shared_ptr` 智能指针。具体来说有以下几个核心作用：
-1. **内存管理更高效**：`make_shared` 会**一次性分配一块内存**，同时存储对象本身和引用计数，而单独使用 `new` 配合 `std::shared_ptr` 构造函数需要两次内存分配（一次给对象，一次给引用计数），因此 `make_shared` 能减少内存分配开销。
-- **传统方式（`new` + `shared_ptr`）**：两次分配是独立的，操作系统需要分别处理两次内存申请，每次都要在内存管理系统中查找可用内存块、更新内存分配表等。
-  - 第一次：通过 `new T(args)` 为对象本身分配内存（存储 `T` 类型的实例数据）。
-  - 第二次：`shared_ptr` 内部需要为 "引用计数"（记录指针被多少个 `shared_ptr` 共享）分配一块额外的内存。
-- **make_shared 方式**：会一次性分配一块连续的内存，同时容纳两部分内容：
-  - 对象本身的数据（`T` 类型的实例）。
-  - 引用计数（以及 `shared_ptr` 所需的其他控制信息，如删除器等）。
-2. **提高异常安全性**：在需要将指针作为参数传递等场景下，使用 `make_shared` 可以避免因异常抛出导致的内存泄漏风险。
-3. **简化代码**：无需显式使用 `new` 操作符，直接通过 `make_shared<类型>(构造参数)` 的形式即可创建智能指针，使代码更简洁。
+## make_shared 相关知识点
+
+`make_shared` 是创建 `shared_ptr` 的推荐方式，具有以下优势：
+
+1. **内存分配更高效**：
+   - 传统方式（`new` + `shared_ptr`）：需要两次内存分配（对象本身 + 引用计数）
+   - `make_shared` 方式：一次性分配连续内存，同时存储对象和引用计数（包括控制信息），减少内存分配开销
+
+2. **提高异常安全性**：
+   - 在将指针作为参数传递等场景下，避免因异常抛出导致的内存泄漏风险
+   - 例如：`func(shared_ptr<T>(new T), other_func())` 可能因函数参数求值顺序导致内存泄漏，而 `func(make_shared<T>(), other_func())` 可避免此问题
+
+3. **简化代码**：
+   - 无需显式使用 `new` 操作符
+   - 语法：`make_shared<类型>(构造参数)`，使代码更简洁直观

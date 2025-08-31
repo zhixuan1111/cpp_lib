@@ -38,7 +38,7 @@ C++中 `map`、`set`、`multimap`，`multiset` 的底层实现都是平衡二叉
 - 广度优先遍历
     - 层次遍历（迭代法）
 
-## 二叉树定义
+### 二叉树定义
 ```cpp
 struct TreeNode {
     int val;
@@ -48,16 +48,63 @@ struct TreeNode {
 };
 ```
 
-## 二叉树的递归遍历
+### 二叉树的递归遍历
 以中序遍历为例，遍历的路径是：根->左->右。代码实现思路：
 
 ```cpp
-void traversal(TreeNode* root, std::vector& result){
+void traversal(TreeNode* root, std::vector<int>& result){
     if(root==nullptr) return;
-    traversal(root,result); //第一处递归
-    result.push_back(root->val);
-    traversal(root,result); // 第二处递归
+    traversal(root->left, result);  // 递归左子树
+    result.push_back(root->val);    // 访问根节点
+    traversal(root->right, result); // 递归右子树
 }
 ```
-代码解析：
-函数运行后，会一直“卡”在第一处递归函数处，当`root`遍历到最左边的叶子节点时，返回。将最左节点的值添加到`result`
+执行流程如下：
+
+1. 首先判断当前节点`root`是否为空，若为空则直接返回，这是递归的终止条件
+
+2. 执行`traversal(root->left, result)`：递归遍历当前节点的左子树
+   - 这个过程会不断深入左子树，直到遇到最左侧的叶子节点（该节点的左子树为空）
+   - 此时递归触底返回，开始执行后续操作
+
+3. 当左子树遍历完成后，执行`result.push_back(root->val)`：
+   - 将当前节点的值存入结果容器`result`中
+   - 这体现了中序遍历"左-根-右"的核心思想，在左子树遍历完成后才访问根节点
+
+4. 最后执行`traversal(root->right, result)`：递归遍历当前节点的右子树
+   - 右子树会以同样的方式进行中序遍历
+   - 先遍历右子树的左子树，再访问右子树的根节点，最后遍历右子树的右子树
+
+整个过程就像沿着树的左侧一路向下，触底后开始收集节点值，然后再处理右侧分支，最终得到的`result`容器会按从小到大的顺序（对于二叉搜索树）存储所有节点值，这也是中序遍历的典型应用场景。
+
+### 二叉树的迭代遍历
+
+以中序的迭代遍历为例子
+```cpp
+void inorderTraversal(TreeNode* root,std::vector<int>& result){
+    std::stack<TreeNode*> st;
+    TreeNode* curr = root;
+    while(!st.empty() || curr != nullptr){
+        while(curr != nullptr){
+            st.push(curr);;
+            curr = curr->left;
+        }
+
+        curr = st.top();
+        st.pop();
+        result.push_back(curr->val);
+        curr = curr->right;
+    }
+}
+```
+整个过程的核心逻辑是：
+1. 利用内层循环将所有左孩子入栈，确保每次处理节点时其左子树已完全遍历
+2. 弹出栈顶节点并记录值（处理根节点）
+3. 转向右子树，重复上述过程
+
+
+
+
+## 基于二叉树的容器实现 `std::map`
+std::map 不允许重复键,按键自动排序（默认升序）。查找、插入、删除的效率皆为O(log n)，内存占用	较低（红黑树结构紧凑）
+

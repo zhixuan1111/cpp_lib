@@ -1,68 +1,68 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
-using namespace std;
-
-// 将以 root 为根的子树调整为最大堆
-void heapify(vector<int>& arr, int n, int root) 
-{
-    int largest = root;        // 初始化最大值为根节点
-    int left = 2 * root + 1;   // 左子节点
-    int right = 2 * root + 2;  // 右子节点
-
-    // 如果左子节点比根节点大
-    if (left < n && arr[left] > arr[largest])
+// 堆化操作：确保以index为根的子树满足最大堆性质
+void heapify(std::vector<int>& arr, int n, int index) {
+    int largest = index;          // 根节点
+    int left = 2 * index + 1;     // 左子节点
+    int right = 2 * index + 2;    // 右子节点
+    
+    // 如果左子节点大于根节点
+    if (left < n && arr[left] > arr[largest]) {
         largest = left;
-
-    // 如果右子节点比当前最大值还大
-    if (right < n && arr[right] > arr[largest])
+    }
+    
+    // 如果右子节点大于当前最大值
+    if (right < n && arr[right] > arr[largest]) {
         largest = right;
-
-    // 如果最大值不是根节点
-    if (largest != root) 
-    {
-        swap(arr[root], arr[largest]);     // 交换
-        heapify(arr, n, largest);          // 递归调整受影响的子树
+    }
+    
+    // 如果最大值不是根节点，则交换并递归堆化
+    if (largest != index) {
+        std::swap(arr[index], arr[largest]);
+        heapify(arr, n, largest);
+        // 终止条件：如果与左子节点交换，递归处理左子树（此时左子树可能因交换被破坏了堆性质）让他左子树符合大根堆
     }
 }
 
-// 主堆排序函数
-void heapSort(vector<int>& arr) 
-{
+// 堆排序函数
+void heapSort(std::vector<int>& arr) {
     int n = arr.size();
-
-    // 建堆（重新排列数组）
-    for (int i = n / 2 - 1; i >= 0; i--)
+    
+    // 从最后一个非叶子节点开始调整(按照最大堆的属性调整)一直往前 到根节点
+    for (int i = n / 2 - 1; i >= 0; i--) {
         heapify(arr, n, i);
-
-    // 一个个取出元素放到末尾
-    for (int i = n - 1; i > 0; i--) 
-    {
-        swap(arr[0], arr[i]);        // 把当前最大值放到末尾
-        heapify(arr, i, 0);          // 对剩余元素重新构建堆
+    }
+    
+    // 从堆中提取元素
+    for (int i = n - 1; i > 0; i--) {
+        // 将当前根节点（最大值）移到数组末尾
+        std::swap(arr[0], arr[i]);  
+        
+        // 此时可能不是大根堆，所以需对剩余元素重新堆化
+        heapify(arr, i, 0);
     }
 }
 
 // 打印数组
-void printArray(const vector<int>& arr) 
-{
-    for (int num : arr)
-        cout << num << " ";
-    cout << endl;
+void printArray(const std::vector<int>& arr) {
+    for (int num : arr) {
+        std::cout << num << " ";
+    }
+    std::cout << std::endl;
 }
 
-// 主函数测试
-int main() 
-{
-    vector<int> arr = {12, 11, 13, 5, 6, 7};
-
-    cout << "orignal:\n";
+// 主函数
+int main() {
+    std::vector<int> arr = {12, 11, 13, 5, 6, 7};
+    std::cout << "排序前的数组: ";
     printArray(arr);
-
+    
     heapSort(arr);
-
-    cout << "after sort:\n";
+    
+    std::cout << "排序后的数组: ";
     printArray(arr);
-
+    
     return 0;
 }

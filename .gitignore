@@ -1,3 +1,6 @@
 .vscode/
 local_test/
 build/
+
+# 忽略当前目录及所有子目录下的PDF文件
+*.pdf

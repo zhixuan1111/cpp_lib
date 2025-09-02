@@ -6,7 +6,7 @@
 - **二级标题**：1.1 查找算法
 - **三级标题**：1.1.1 二分查找
 - **四级标题**：(1) 实现思路
-- **五级标题**：(a) 步骤1  
+- **五级标题**：A. 步骤1  
 
 # 目录
 - [一、算法](#一算法)
@@ -77,7 +77,7 @@
 
 #### （4）实现代码
 
-跳转到[快速排序实现代码](algorithms/sort_quick/quick_sort.cpp)
+跳转到[快速排序实现代码](algorithms/sort_quick/quick_sort.md)
 
 回到[目录](#目录)
 
@@ -99,7 +99,7 @@
 
 #### （2）归并排序实现代码  
 
-跳转到[归并排序实现代码](algorithms/sort_merge/merge_sort.cpp)
+跳转到[归并排序 实现代码](algorithms/sort_merge/merg_sort.md)
 
 回到[目录](#目录)
 
@@ -153,7 +153,7 @@
 
 #### （8）堆排序实现代码
 
-跳转到[堆排序实现代码](algorithms/sort_heap/heap_sort.cpp)  
+跳转到[堆排序实现代码](algorithms/sort_heap/heap_sort.md)  
 
 回到[目录](#目录)
 
@@ -171,7 +171,7 @@
 
 ### 2.1.2 vector实现代码
 
-跳转到[vector实现代码](containers/vector/vector.h)
+跳转到[vector实现代码](containers/vector/vector.md)
 
 ### 2.1.2 vector相关面试问题
 1. `vector`的扩容机制是什么？
@@ -255,7 +255,7 @@
 
 #### 4. 简易实现  
 
-跳转到[哈希表实现代码](containers/hashtable/hashtable.cpp)
+跳转到[哈希表实现代码](containers/hashtable/hashtable.md)
 
 回到[目录](#目录)
 
@@ -303,6 +303,112 @@
 ## 2.4 deque
 
 ## 2.5 二叉树
+
+### 2.5.1 二叉树概念
+#### （1）满二叉树
+如果一棵二叉树只有度为0的结点和度为2的结点，并且度为0的结点在同一层上，则这棵二叉树为满二叉树。也可以说深度为k，有2^k-1个节点的二叉树。
+
+![满二叉树](/image/binary_tree/满二叉树.png)
+
+#### （2）完全二叉树
+在完全二叉树中，除了最底层节点可能没填满外，其余每层节点数都达到最大值，并且最下面一层的节点都集中在该层最左边的若干位置。若最底层为第 h 层（h从1开始），则该层包含 1~ 2^(h-1) 个节点。
+
+![完全二叉树](/image/binary_tree/完全二叉树.png)
+
+#### （3）二叉搜索树（BST）
+又名二叉排序树。二叉搜索树是有数值的了，二叉搜索树是一个有序树。
+
+![二叉搜索树](/image/binary_tree/二叉搜索树.png)
+
+- 若它的左子树不空，则左子树上**所有结点的值**均小于它的根结点的值；
+- 若它的右子树不空，则右子树上**所有结点的值**均大于它的根结点的值；
+- 它的左、右子树也分别为二叉排序树
+
+#### （3）平衡二叉搜索树  
+又被称为AVL（Adelson-Velsky and Landis）树，且具有以下性质：它是一棵空树或它的左右两个子树的高度差的绝对值不超过1，并且左右两个子树都是一棵平衡二叉树。
+
+![](/image/binary_tree/平衡二叉搜索树.png)
+
+上图第三个不是平衡二叉搜索树，因为左右子树高度差超过1
+
+平衡二叉搜索树在 BST 基础上增加了 “平衡约束”，通过旋转等操作维持树的高度平衡（左右子树高度差在可控范围内），保证所有操作的时间复杂度稳定在 O (log n)。常见的平衡 BST 包括：
+- 红黑树
+- AVL 树
+- 平衡二叉 B 树  
+
+C++中 `map`、`set`、`multimap`，`multiset` 的底层实现都是平衡二叉搜索树，所以 `map`、`set` 的增删操作时间时间复杂度是logn。`unordered_map`、`unordered_set`，`unordered_map`、`unordered_set`底层实现是哈希表。
+
+### 2.5.2 二叉树遍历方式
+二叉树主要有两种遍历方式：深度优先遍历：先往深走，遇到叶子节点再往回走。广度优先遍历：一层一层的去遍历。
+- 深度优先遍历
+    - 前序遍历（递归法，迭代法）
+    - 中序遍历（递归法，迭代法）
+    - 后序遍历（递归法，迭代法）
+- 广度优先遍历
+    - 层次遍历（迭代法）
+
+#### 二叉树定义
+```cpp
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+};
+```
+
+#### 二叉树的递归遍历
+以中序遍历为例，遍历的路径是：根->左->右。代码实现思路：
+
+```cpp
+void traversal(TreeNode* root, std::vector<int>& result){
+    if(root==nullptr) return;
+    traversal(root->left, result);  // 递归左子树
+    result.push_back(root->val);    // 访问根节点
+    traversal(root->right, result); // 递归右子树
+}
+```
+*执行流程如下：*
+
+1. 首先判断当前节点`root`是否为空，若为空则直接返回，这是递归的终止条件
+
+2. 执行`traversal(root->left, result)`：递归遍历当前节点的左子树
+   - 这个过程会不断深入左子树，直到遇到最左侧的叶子节点（该节点的左子树为空）
+   - 此时递归触底返回，开始执行后续操作
+
+3. 当左子树遍历完成后，执行`result.push_back(root->val)`：
+   - 将当前节点的值存入结果容器`result`中
+   - 这体现了中序遍历"左-根-右"的核心思想，在左子树遍历完成后才访问根节点
+
+4. 最后执行`traversal(root->right, result)`：递归遍历当前节点的右子树
+   - 右子树会以同样的方式进行中序遍历
+   - 先遍历右子树的左子树，再访问右子树的根节点，最后遍历右子树的右子树
+
+整个过程就像沿着树的左侧一路向下，触底后开始收集节点值，然后再处理右侧分支，最终得到的`result`容器会按从小到大的顺序（对于二叉搜索树）存储所有节点值，这也是中序遍历的典型应用场景。
+
+#### 二叉树的迭代遍历
+
+以中序的迭代遍历为例子
+```cpp
+void inorderTraversal(TreeNode* root,std::vector<int>& result){
+    std::stack<TreeNode*> st;
+    TreeNode* curr = root;
+    while(!st.empty() || curr != nullptr){
+        while(curr != nullptr){
+            st.push(curr);;
+            curr = curr->left;
+        }
+        curr = st.top();
+        st.pop();
+        result.push_back(curr->val);
+        curr = curr->right;
+    }
+}
+```
+整个过程的核心逻辑是：
+1. 利用内层循环将所有左孩子入栈，确保每次处理节点时其左子树已完全遍历
+2. 弹出栈顶节点并记录值（处理根节点）
+3. 转向右子树，重复上述过程
 
 回到[目录](#目录)
 
@@ -388,6 +494,7 @@ std::unique_ptr<int, decltype(deleter)> ptr3(new int(10), deleter);
 - **灵活性**：可用于容器存储，作为函数返回值传递（通过移动语义）  
 
 回到[目录](#目录)
+
 ### 3.1.2 shared_ptr
 ####  (1) 核心特点
 
@@ -421,124 +528,7 @@ std::unique_ptr<int, decltype(deleter)> ptr3(new int(10), deleter);
 
 ####  (4) 实现代码示例
 
-```cpp
-#include <iostream>
-#include <utility> // for std::swap
-
-template <typename T> 
-class shared_ptr {
-private:
-  T* ptr;           // 指向管理的对象
-  size_t* ref_count; // 引用计数指针
-
-  // 释放资源
-  void release() {
-    if (ref_count) {
-      (*ref_count)--;
-      // 当引用计数为0时，彻底释放资源
-      if (*ref_count == 0) {
-        delete ptr;
-        delete ref_count;
-      }
-      // 清空当前实例的指针
-      ptr = nullptr;
-      ref_count = nullptr;
-    }
-  }
-
-public:
-  // 构造函数：从原始指针构造
-  explicit shared_ptr(T* p = nullptr) : ptr(p), ref_count(nullptr) {
-    if (p) {
-      ref_count = new size_t(1); // 初始化引用计数为1
-    }
-  }
-
-  // 拷贝构造函数
-  shared_ptr(const shared_ptr& other) 
-      : ptr(other.ptr), ref_count(other.ref_count) {
-    if (ref_count) { // 防止拷贝空对象
-      (*ref_count)++;
-    }
-  }
-
-  // 移动构造函数
-  shared_ptr(shared_ptr&& other) noexcept 
-      : ptr(other.ptr), ref_count(other.ref_count) {
-    // 转移所有权后将源对象指针置空
-    other.ptr = nullptr;
-    other.ref_count = nullptr;
-  }
-
-  // 析构函数
-  ~shared_ptr() {
-    release();
-  }
-
-  // 拷贝赋值运算符
-  shared_ptr& operator=(const shared_ptr& other) {
-    // 防止自赋值
-    if (this != &other) {
-      // 先释放当前资源
-      release();
-      // 拷贝新资源
-      ptr = other.ptr;
-      ref_count = other.ref_count;
-      if (ref_count) {
-        (*ref_count)++;
-      }
-    }
-    return *this;
-  }
-
-  // 移动赋值运算符
-  shared_ptr& operator=(shared_ptr&& other) noexcept {
-    if (this != &other) {
-      // 释放当前资源
-      release();
-      // 转移所有权
-      ptr = other.ptr;
-      ref_count = other.ref_count;
-      // 源对象指针置空
-      other.ptr = nullptr;
-      other.ref_count = nullptr;
-    }
-    return *this;
-  }
-
-  // 重载解引用运算符
-  T& operator*() const {
-    return *ptr;
-  }
-
-  // 重载->运算符
-  T* operator->() const {
-    return ptr;
-  }
-
-  // 获取原始指针
-  T* get() const {
-    return ptr;
-  }
-
-  // 获取当前引用计数
-  size_t use_count() const {
-    return ref_count ? *ref_count : 0;
-  }
-
-  // 交换两个shared_ptr的内容
-  void swap(shared_ptr& other) {
-    std::swap(ptr, other.ptr);
-    std::swap(ref_count, other.ref_count);
-  }
-};
-
-// 辅助函数：创建shared_ptr（类似std::make_shared）
-template <typename T, typename... Args>
-shared_ptr<T> make_shared(Args&&... args) {
-  return shared_ptr<T>(new T(std::forward<Args>(args)...));
-}
-```
+跳转到[shared_ptr实现代码](new_feature/smart_pointer/shared_ptr/shared_ptr.md)
 
 ####  (5) make_shared 相关知识点
 
@@ -600,48 +590,8 @@ shared_ptr<T> make_shared(Args&&... args) {
 
 #### (3) 简化实现示例
 
-```cpp
-// 控制块结构（简化版）
-template <typename T>
-struct ControlBlock {
-    int strong_count;  // 强引用计数
-    int weak_count;    // 弱引用计数
-    T* object;         // 指向实际对象
-    // ... 其他成员（删除器等）
-};
+跳转到[weak_ptr 实现代码](new_feature/smart_pointer/weak_ptr/weak_ptr.md)
 
-// weak_ptr 简化实现
-template <typename T>
-class weak_ptr {
-private:
-    ControlBlock<T>* cb;  // 指向控制块
-
-public:
-    // 从 shared_ptr 构造
-    weak_ptr(const shared_ptr<T>& sp) : cb(sp.cb) {
-        if (cb) cb->weak_count++;  // 弱引用计数+1
-    }
-
-    // 转换为 shared_ptr（lock() 方法）
-    shared_ptr<T> lock() const {
-        if (cb && cb->strong_count > 0) {
-            // 对象存活，返回 shared_ptr 并增加强引用计数
-            return shared_ptr<T>(cb);
-        }
-        return shared_ptr<T>();  // 对象已销毁，返回空
-    }
-
-    // 析构函数
-    ~weak_ptr() {
-        if (cb) {
-            cb->weak_count--;
-            if (cb->weak_count == 0 && cb->strong_count == 0) {
-                delete cb;  // 弱引用计数为0且对象已销毁，释放控制块
-            }
-        }
-    }
-};
-```  
 回到[目录](#目录)
 
 ## 3.2 `lambada` 表达式
@@ -804,7 +754,6 @@ struct __Lambda3 {
 __Lambda3 sum;
 ```
 
-
 ### 四、关键特性总结
 
 1. **匿名性**：没有函数名，通常通过 `auto` 变量捕获
@@ -962,7 +911,6 @@ int main() {
     return 0;
 }
 ```
-
 
 #### 4.3 空 `std::function` 的调用风险
 未初始化的 `std::function` 是“空的”（可通过 `operator bool()` 判断），直接调用空的 `std::function` 会抛出 `std::bad_function_call` 异常，需提前检查：
@@ -1366,6 +1314,8 @@ IP协议首部各部分作用如下：
 - **协议**：指明IP包中封装的上层协议类型，如1代表ICMP、2代表IGMP、6代表TCP、17代表UDP、41代表IPv6、89代表OSPF等，以便接收方对载荷进行正确的处理。
 - **首部校验和**：用于检测IP首部在传输过程中是否出现差错，通过校验和计算来保障首部数据的完整性。
 
+回到[目录](#目录)
+
 ## 6.3 ARP协议
 ARP即Address Resolution Protocol，地址解析协议，属于网络层辅助协议。
 
@@ -1377,6 +1327,8 @@ ARP协议的使用限定在同一网络中，即只有同一网络中的主机�
 
 ### 6.3.3 ARP协议包内容
 ARP协议包包含源IP地址、源MAC地址、目标IP地址等信息。通过将这些信息发送给网络中的交换机等设备，交换机接收到后，会协助将数据发送到目标IP地址对应的MAC地址所指向的主机，从而实现数据在网络中的准确传输。
+
+回到[目录](#目录)
 
 ## 6.4 ICMP协议
 主机或路由器使用ICMP发送询问报文和差错报告报文，用于在IP网络中传递控制信息、诊断网络问题等，例如测试目标主机是否可达、报告网络差错情况等。
@@ -1391,6 +1343,8 @@ ARP协议包包含源IP地址、源MAC地址、目标IP地址等信息。通过�
 
 ### 6.4.3 补充说明
 ICMP是网络层协议，它依赖IP协议来传递报文，但**本身并不是高层协议的数据载体**（不过其报文会被封装在IP数据报中传输）。另外，ICMP虽然能报告差错，但也存在一些限制，比如并非所有的网络差错都会产生ICMP差错报告报文，像目的主机已经收到数据报但上层协议无法处理等情况，可能有不同的处理逻辑。
+
+回到[目录](#目录)
 
 ## 6.5 UDP协议
 ### 6.5.1 UDP特点
@@ -1425,11 +1379,14 @@ UDP的工作逻辑简单，无需连接管理，核心流程仅3步：
 - **接收数据（recvfrom）**：服务器端通过该函数接收数据，并获取发送方地址。
 - **关闭套接字（close）**：通信结束后关闭套接字释放资源。
 
+回到[目录](#目录)
+
 ## 6.6 TCP协议
 ### 6.6.1 特性
 面向连接、可靠传输，通过发送缓冲区、接收缓冲区和滑动窗口机制管理数据发送，有发送确认（ACK）机制。
 
 ### 6.6.2 报文格式
+
 ![TCP报文格式](image/计算机网络/TCP报文格式.png "TCP报文格式")
 
 - **源端口和目的端口**  
@@ -1459,13 +1416,14 @@ UDP的工作逻辑简单，无需连接管理，核心流程仅3步：
 长度可变，用于实现一些额外的功能，常见的选项有最大报文段长度（MSS，Maximum Segment Size）、窗口扩大因子、时间戳等。
 
 ### 6.6.3 关键机制
+
 TCP的六大机制并非独立，而是相互配合形成完整的传输保障体系：  
 - **三次握手**建立连接 → **字节流+有序传输**确保数据顺序 → **确认与重传**确保数据不丢失 → **滑动窗口（流量控制）** 匹配端到端速度 → **拥塞控制**避免网络拥堵 → **四次挥手**安全释放连接。  
 
-#### 6.6.3.1 面向连接的“三次握手”（Three-Way Handshake）
+#### （1）面向连接的“三次握手”（Three-Way Handshake）
 TCP是**面向连接**的协议，在数据传输前必须先建立逻辑连接，“三次握手”是建立连接的唯一方式，其核心目的是：**同步双方的序列号（Sequence Number）、确认双方的通信能力（收/发通道正常）**，避免“失效连接请求”导致资源浪费。
 
-##### 6.6.3.1.1 三次握手的具体过程（以客户端主动发起连接为例）
+##### A. 三次握手的具体过程（以客户端主动发起连接为例）
 
 ![TCP三次握手](image/计算机网络/TCP三次握手.png)
 
@@ -1488,71 +1446,69 @@ TCP是**面向连接**的协议，在数据传输前必须先建立逻辑连接�
    客户端发送后进入 `ESTABLISHED` 状态，服务器收到该报文后也进入 `ESTABLISHED` 状态，**连接正式建立**，双方可开始传输数据。
 
 
-#### 6.6.3.2 可靠传输的“确认与重传”机制
+#### （2）可靠传输的“确认与重传”机制
 TCP的核心价值是**可靠传输**——确保发送的每一个字节都能被接收方正确收到，若丢失则重传。这一机制依赖“序列号（Seq）、确认号（Ack）”和“重传计时器”实现，分为两种场景：
 
-##### 6.6.3.2.1 基于“确认号”的正常确认（累计确认）
+##### A. 基于“确认号”的正常确认（累计确认）
 TCP采用**累计确认**策略：接收方收到数据后，会回复一个“确认报文”，其中的 **Ack = 已正确接收的最大字节数 + 1**，表示“下一次期望接收该序号及之后的数据”。  
 例如：客户端发送了Seq=100、长度为50字节的数据（覆盖100-149），服务器正确接收后，会回复Ack=150，告知客户端“149及之前已收到，下次等150”。
 
-##### 6.6.3.2.2 基于“计时器”的重传（超时重传）
+##### B. 基于“计时器”的重传（超时重传）
 若发送方在**超时时间（RTO）** 内未收到对应数据的确认，会认为数据丢失，主动重传该数据。  
 TCP会动态调整RTO（基于网络往返时间RTT的变化）：网络通畅时RTO减小，避免等待过久；网络拥堵时RTO增大，避免频繁无效重传。
 
 
-#### 6.6.3.3 流量控制（滑动窗口机制）
+#### （3）流量控制（滑动窗口机制）
 流量控制的核心目的是：**避免发送方发送速度过快，导致接收方缓冲区溢出（接收方处理速度跟不上）**，本质是“接收方告知发送方‘最多还能接收多少数据’”。
 
-##### 6.6.3.3.1 滑动窗口的核心概念
+##### A. 滑动窗口的核心概念
 TCP用“滑动窗口”表示“允许发送方连续发送的字节范围”，窗口大小由接收方决定，通过报文中的 **Window Size（窗口大小）** 字段告知发送方：  
 - **发送窗口**：发送方当前可连续发送的字节范围（无需等待确认），大小 = 接收方告知的Window Size。  
 - **接收窗口**：接收方当前空闲缓冲区的大小（可接收的最大字节数），若接收方处理数据后缓冲区空闲，会增大Window Size；若缓冲区快满，会减小Window Size。
 
-##### 6.6.3.3.2 窗口的“滑动”过程
+##### B. 窗口的“滑动”过程
 - 初始时，发送窗口覆盖“未发送”的字节，发送方连续发送窗口内的数据；  
 - 接收方确认部分数据后（回复Ack），发送窗口会“向右滑动”——已确认的字节移出窗口，未发送的字节进入窗口；  
 - 若接收方缓冲区满（Window Size=0），发送方会停止发送，仅定期发送“窗口探测报文”，等待接收方告知新的窗口大小（缓冲区空闲后）。
 
 
-#### 6.6.3.4 拥塞控制（避免网络整体拥堵）
+#### （4）拥塞控制（避免网络整体拥堵）
 拥塞控制与流量控制的区别：  
 - 流量控制：“端到端”控制（仅关注发送方和接收方的速度匹配）；  
 - 拥塞控制：“全局”控制（关注整个网络的负载，避免因发送方过多导致网络链路拥堵、丢包）。  
 
 TCP通过**四个阶段**动态调整“拥塞窗口（Congestion Window，cwnd）”，控制发送方的实际发送速度（实际发送窗口大小 = min(拥塞窗口cwnd, 接收方窗口Window Size)）：
 
-##### 6.6.3.4.1 慢启动（Slow Start）
+##### A. 慢启动（Slow Start）
 - 初始时，cwnd从1个“最大报文段长度（MSS，TCP报文的数据部分最大长度）”开始，每收到一个确认（RTT时间），cwnd就**翻倍**（1→2→4→8...）；  
 - 目的：快速探测网络的最大承载能力，避免一开始就发送大量数据导致拥堵；  
 - 终止条件：cwnd达到“慢启动阈值（ssthresh，初始值通常较大，如65535字节）”，进入“拥塞避免”阶段。
 
-##### 6.6.3.4.2 拥塞避免（Congestion Avoidance）
+##### B. 拥塞避免（Congestion Avoidance）
 - cwnd不再翻倍，而是每经过一个RTT，cwnd**增加1个MSS**（线性增长）；  
 - 目的：缓慢增加发送量，避免超过网络承载能力，维持网络稳定；  
 - 终止条件：若出现丢包（超时或收到重复确认），进入“快速重传”或“超时重传”阶段，并调整ssthresh = cwnd/2（将阈值降至当前拥塞窗口的一半，避免再次拥堵）。
 
-##### 6.6.3.4.3 快速重传（Fast Retransmit）
+##### C. 快速重传（Fast Retransmit）
 - 若发送方连续收到**3个相同的确认报文**（例如：连续收到Ack=150，说明接收方多次未收到Seq=150的数据），会立即重传丢失的数据，无需等待超时；  
 - 重传后进入“快速恢复”阶段，而非“慢启动”，避免发送速度骤降。
 
-##### 6.6.3.4.4 快速恢复（Fast Recovery）
+##### D. 快速恢复（Fast Recovery）
 - 直接将cwnd设置为“ssthresh（丢包前的cwnd/2）”，然后按“拥塞避免”的规则线性增长；  
 - 目的：在确认丢包后，快速恢复发送速度，同时避免再次引发拥堵。
 
 
-#### 6.6.3.5 面向字节流与有序传输
+#### （5）面向字节流与有序传输
 TCP是**面向字节流**的协议，而非“面向报文”——发送方会将应用层数据拆分为合适大小的“TCP报文段”（结合MSS和窗口大小），接收方则将收到的报文段按顺序重组为完整的字节流，再交给应用层。
 
-##### 6.6.3.5.1 有序传输的实现
-- 发送方为每个字节分配唯一的“序列号（Seq）”，TCP报文段的“Seq”字段表示该报文段第一个字节的序号；  
-- 接收方会按“序列号从小到大”排序收到的报文段，若发现中间有缺失（例如：收到Seq=100和Seq=150的报文段，缺失100-149），会缓存已收到的后续报文段，并反复向发送方确认“期望接收Seq=100”；  
-- 发送方收到重复确认后，会重传缺失的报文段，确保接收方最终能按顺序重组所有数据。
+- 有序传输的实现
+  - 发送方为每个字节分配唯一的“序列号（Seq）”，TCP报文段的“Seq”字段表示该报文段第一个字节的序号；  
+  - 接收方会按“序列号从小到大”排序收到的报文段，若发现中间有缺失（例如：收到Seq=100和Seq=150的报文段，缺失100-149），会缓存已收到的后续报文段，并反复向发送方确认“期望接收Seq=100”；  
+  - 发送方收到重复确认后，会重传缺失的报文段，确保接收方最终能按顺序重组所有数据。
 
 
-#### 6.6.3.6 连接释放的“四次挥手”（Four-Way Handshake）
-TCP连接是“全双工”（双方可同时发送数据），因此释放连接需双方分别关闭各自的“发送通道”，过程分为四次交互，核心目的是：**确保双方都已发送完所有数据，且都确认对方已收到**。
-
-##### 6.6.3.6.1 四次挥手的具体过程（以客户端主动发起关闭为例）
+#### （6）连接释放的“四次挥手”（Four-Way Handshake）
+TCP连接是“全双工”（双方可同时发送数据），因此释放连接需双方分别关闭各自的“发送通道”，过程分为四次交互，核心目的是：**确保双方都已发送完所有数据，且都确认对方已收到**。以下是四次挥手的具体过程，以客户端主动发起关闭为例。
 
 ![TCP四次挥手](image/计算机网络/TCP四次挥手.png)
 
@@ -1585,7 +1541,7 @@ TCP连接是“全双工”（双方可同时发送数据），因此释放连�
   - 服务器接收请求并处理。
   - 服务器发送HTTP响应。
 
-![HTTP报文格式](image/计算机网络/HTTP报文格式.jpeg)
+![HTTP报文格式](image/计算机网络/HTTP报文格式2.png)
 
 ### 二、HTTP报文格式
 HTTP报文分为请求报文和响应报文，都由**首部**和**数据载荷**（实体主体）组成，且使用ASCII编码（数据载荷若为非文本如图片等有其他编码或传输方式）。

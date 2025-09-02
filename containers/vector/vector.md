@@ -1,40 +1,94 @@
-# vector
-## 实现方式
-1. vector是一个函数模板类，内部由`T* data`，`size_t capacity`，`size_t size`组成，三个参数的含义分别是：
-    - `data`：管理`T`类型的一块内存地址，大小为`capacity`；
-    - `size`：当前数组中存放的元素个数。
-2. 构造函数实现
-    ```cpp
-    vector(size_t num = 50) : size(0), capacity(num) {
-        data = new T[capacity]; 
+# vector代码实现
+
+回到[主目录 vector](../../README.md#21-vector)  
+
+```cpp
+#include <stdexcept> // 用于异常处理
+
+template <typename T> class vector {
+private:
+  T *head;         // 指向动态数组的指针
+  size_t size;     // 当前元素数量
+  size_t capacity; // 容量（可容纳的最大元素数量）
+
+  // 辅助函数：扩容
+  void reserve(size_t new_capacity) {
+    if (new_capacity <= capacity)
+      return;
+
+    // 分配新的内存空间
+    T *new_head = new T[new_capacity];
+
+    // 复制现有元素
+    for (size_t i = 0; i < size; ++i) {
+      new_head[i] = head[i];
     }
-    ```
-3. 析构函数实现
-    ```cpp
-    ~vector() {
-        delete[] head; 
+
+    // 释放旧内存
+    delete[] head;
+
+    // 更新指针和容量
+    head = new_head;
+    capacity = new_capacity;
+  }
+
+public:
+  // 构造函数
+  vector(size_t num = 50) : size(0), capacity(num) { head = new T[capacity]; }
+
+  // 析构函数
+  ~vector() { delete[] head; }
+
+  // 获取当前元素数量
+  size_t getSize() const { return size; }
+
+  // 获取容量
+  size_t getCapacity() const { return capacity; }
+
+  // 访问指定位置元素（带边界检查）
+  T &at(size_t pos) {
+    if (pos >= size) {
+      throw std::out_of_range("vector::at: Index out of range");
     }
-    ```
-## 八股
-1. `push_back()`和`emplace_back()`有什么区别？`emplace_back()`是怎么实现的？
-    - `push_back()`：
-        用于将一个已经构造好的对象复制或移动到容器中。
-        如果传入的是临时对象，会先构造临时对象，再通过移动构造函数将其移动到容器（C++11 及以后）；如果传入的是已有对象，则会调用复制构造函数。
-    - `emplace_back()`：
-        直接在容器的内存空间中原地构造对象，避免了临时对象的创建和移动 / 复制操作。
-        它接收的是对象构造函数的参数，而非对象本身，通过这些参数直接在容器末尾构造新元素。
-    - 代码实现
-        ```cpp
-        template <typename... Args>
-        void emplace_back(Args&&... args) {
-        // 确保有足够内存
-        if (size_ == capacity_) {
-            reallocate();  // 扩容
-        }
-        // 获取新元素的内存地址
-        T* p = data_ + size_;
-        // 原地构造对象（placement new）
-        new (p) T(std::forward<Args>(args)...);  // 转发参数到构造函数
-        size_++;
-        }
-        ```
+    return head[pos];
+  }
+
+  // 重载[]运算符（带边界检查）
+  T &operator[](size_t index) {
+    if (index >= size)
+      throw std::out_of_range("Index out of range");
+    return head[index];
+  }
+
+  // 在末尾添加元素
+  void push_back(const T &value) {
+    // 如果容量不足，扩容（通常翻倍）
+    if (size >= capacity) {
+      reserve(capacity == 0 ? 1 : capacity * 2);
+    }
+
+    head[size++] = value;
+  }
+
+  // 移除末尾元素
+  void pop_back() {
+    if (size > 0) {
+      --size;
+      // 对于基本类型，简单减少size即可
+      // 对于类类型，可能需要调用析构函数，这里简化处理
+    } else {
+      throw std::out_of_range("vector::pop_back: Vector is empty");
+    }
+  }
+
+  // 清空所有元素
+  void clear() {
+    // 对于类类型，可能需要逐个调用析构函数
+    size = 0; // 简单地将size设为0，后续添加元素会覆盖原有数据
+  }
+
+  bool empty() const { return size == 0; }
+};
+```
+
+回到[主目录 vector](../../README.md#21-vector)  

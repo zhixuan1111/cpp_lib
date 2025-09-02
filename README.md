@@ -55,7 +55,7 @@
  
 ### 1.2.2 快速排序： 
 
-（1） **实现思路**
+#### （1）实现思路
 1. 选择基准值（pivot）：
     - 从待排序数组中选取一个元素作为基准值（常见选择有首元素、尾元素、中间元素或随机元素）。
 2. 分区（partition）：
@@ -65,19 +65,25 @@
     - 对基准值左侧的子数组（元素均小于基准值）和右侧的子数组（元素均大于基准值）分别重复上述 “选择基准值 - 分区” 过程。
     - 递归终止条件：子数组长度为 0 或 1（已天然有序）。  
 
-（2） **时间复杂度**
+#### （2）时间复杂度
 1. 平均情况：O (n log n)，这是快速排序的典型表现，源于其分治策略将问题规模不断二分。
 2. 最坏情况：O (n²)，发生在每次选择的基准值都是当前子数组中的最大或最小元素时（如对已排序数组选择首 / 尾元素作为基准），导致分区失衡，递归深度变为 n 层。
 3. 最好情况：O (n log n)，当每次选择的基准值都能将数组均匀分为两个规模接近的子数组时。  
 
-（3） **空间复杂度**
+#### （3）空间复杂度
 1. 额外空间复杂度：O (log n) ~ O (n)，主要来自递归调用产生的栈空间。
 2. 平均情况下，递归深度为 log n，空间复杂度为 O (log n)。
 3. 最坏情况下，递归深度为 n，空间复杂度为 O (n)。
 
+#### （4）实现代码
+
+跳转到[快速排序实现代码](algorithms/sort_quick/quick_sort.cpp)
+
+回到[目录](#目录)
+
 ### 1.2.3 归并排序： 
 
-（1）归并排序实现方法
+#### （1）归并排序实现方法
 归并排序是典型的分治算法，主要通过 "分解 - 合并" 两个步骤实现排序。由两个函数组成，分别是`mergeSort()`和`mergeArr()`。
 1. 分解：
     - 递归调用`mergeSort()`将待排序数组不断二分，直到每个子数组只包含一个元素（单个元素默认有序）。
@@ -90,6 +96,10 @@
 1. 时间复杂度稳定为 **O (n log n)**（最好、最坏、平均情况一致）
 2. 空间复杂度为 **O (n)**（需要额外空间存储合并结果）
 3. 是稳定排序（相等元素的相对顺序保持不变）  
+
+#### （2）归并排序实现代码  
+
+跳转到[归并排序实现代码](algorithms/sort_merge/merge_sort.cpp)
 
 回到[目录](#目录)
 
@@ -141,7 +151,10 @@
   - 优先队列实现
   - 快速找到集合中的最大值
 
-跳转到[堆排序代码](algorithms/sort_heap/heap_sort.cpp)  
+#### （8）堆排序实现代码
+
+跳转到[堆排序实现代码](algorithms/sort_heap/heap_sort.cpp)  
+
 回到[目录](#目录)
 
 # 二、数据结构和容器
@@ -155,6 +168,11 @@
     - `vector(size_t size)`：指定大小的构造函数。构造一个包含 n 个元素的 vector，每个元素使用默认值初始化（对于基本类型通常是 0）。
     - `vector(size_t size,T value)`：指定大小和初始值的构造函数。构造一个包含 n 个元素的 vector，每个元素都被初始化为指定值 value。
     - 还有迭代器范围构造函数、拷贝构造函数、移动构造函数（C++11 起）、初始化列表构造函数、分配器构造函数
+
+### 2.1.2 vector实现代码
+
+跳转到[vector实现代码](containers/vector/vector.h)
+
 ### 2.1.2 vector相关面试问题
 1. `vector`的扩容机制是什么？
     - `vector` 底层使用连续的动态数组存储元素，当现有容量不足以容纳新元素时，会触发扩容
@@ -169,6 +187,8 @@
     - `emplace_back()`：
         直接在容器的内存空间中原地构造对象，避免了临时对象的创建和移动 / 复制操作。
         它接收的是对象构造函数的参数，而非对象本身，通过这些参数直接在容器末尾构造新元素。
+
+回到[目录](#目录)
 
 ## 2.2 list： 
 
@@ -233,112 +253,11 @@
 
 **注意**：扩容过程是“一次性耗时操作”（时间复杂度O(n)），但由于扩容频率低（每次扩容后数组长度翻倍），从长期来看，哈希表的平均操作复杂度仍能维持O(1)。
 
-#### 4. 简易实现
-```cpp
-#include <iostream>
-#include <list>
-#include <string>
-#include <utility>
-#include <vector>
+#### 4. 简易实现  
 
-size_t hashStringToIndex(const std::string &str, size_t arraySize) {
-  // DJB2哈希算法
-  unsigned long hash = 5381;
-  for (char c : str) {
-    hash = ((hash << 5) + hash) + c; // hash * 33 + c
-  }
-  // 对数组大小取模，确保结果在有效索引范围内
-  return hash % arraySize;
-}
+跳转到[哈希表实现代码](containers/hashtable/hashtable.cpp)
 
-class HashTable {
-private:
-  std::vector<std::list<std::pair<std::string, int>>> table;
-  int size; // 哈希表容量
-
-public:
-  HashTable(int s);
-  ~HashTable();
-  void insert(std::string, int);
-  void printTable() const;
-  int search(std::string) const;
-  bool deleteKey(std::string);
-  bool resize();
-};
-
-HashTable::HashTable(int s = 10) : size(s) { this->table.resize(this->size); }
-
-HashTable::~HashTable() {}
-
-void HashTable::insert(std::string name, int age) {
-  int index = hashStringToIndex(name, this->size);
-  // 检查该索引下是否已经存在相同的key，若存在的话就更新对应的value
-  for (auto &i : this->table[index]) {
-    if (i.first == name) {
-      i.second = age;
-      return;
-    }
-  }
-  // 若不存在，就在当前的list下增加条件键值对
-  this->table[index].emplace_back(name, age);
-}
-
-void HashTable::printTable() const {
-  int temp_index = 0;
-  for (auto &list : this->table) {
-    std::cout << "[" << temp_index << "]" << " ";
-    for (auto &pair : list) {
-      std::cout << "(" << pair.first << "," << pair.second << ") ";
-    }
-    std::cout << std::endl;
-    temp_index++;
-  }
-}
-
-int HashTable::search(std::string name) const {
-  int index = hashStringToIndex(name, this->size);
-  // 遍历该链表下的所有值，如果有key等于name，就返回
-  auto list = this->table[index];
-  for (auto p : list) {
-    if (p.first == name) {
-      return p.second;
-    }
-  }
-  return -1;
-}
-
-bool HashTable::deleteKey(std::string name) {
-  int index = hashStringToIndex(name, this->size);
-  auto &list = this->table[index];
-  for (auto i = list.begin(); i != list.end(); ++i) {
-    if ((*i).first == name) {
-      list.erase(i);
-      return true;
-    }
-  }
-  return false;
-}
-
-bool HashTable::resize() {
-//   const std::vector<std::list<std::pair<std::string, int>>> old_table =
-//       this->table; // 可以不复制，使用std::move转移旧表的所有权
-  auto old_table = std::move(this->table); // 更高效，O(1)操作
-  this->table.clear();
-  this->size = this->size * 2;
-  this->table.resize(this->size);
-
-  for (int i = 0; i < old_table.size(); i++) {
-    auto &list = old_table[i];
-    for (auto &p : list) {
-      int temp_index = hashStringToIndex(p.first, this->size);
-      //   this->table[temp_index].emplace_back(p);
-      this->table[temp_index].emplace_back(std::move(p)); // 更高效
-    }
-  }
-  return true;
-}
-```
-
+回到[目录](#目录)
 
 ### 2.3.2 哈希表的性能分析
 哈希表的性能核心取决于“哈希函数的均匀性”和“冲突解决策略”，以下是不同场景下的时间复杂度对比：
@@ -378,6 +297,8 @@ bool HashTable::resize() {
 
 4. **为什么哈希表是空间换时间的操作？**  
     当元素数量接近或超过数组容量时，会触发 “扩容”（如容量翻倍），此时需要申请更大的内存空间。即使元素数量较少，哈希表也需要预先分配一定大小的数组（或动态扩容后保留空闲空间），这些空间可能暂时未被充分利用。
+
+回到[目录](#目录)
 
 ## 2.4 deque
 
@@ -1201,7 +1122,6 @@ wrapper(MyString("world")); // arg 是右值，forward 后仍为右值 → 调�
 
 单例模式（Singleton Pattern）是一种创建型设计模式，核心目标是确保**一个类在整个程序生命周期中仅存在一个实例**，并提供一个全局唯一的访问点，避免频繁创建销毁对象带来的资源开销，同时保证实例的全局可访问性。
 
-
 ### 4.1.1、核心实现方式：局部静态变量懒汉式（推荐）
 该实现方式是 C++11 及以上标准中最简洁、安全的单例实现之一，兼具懒加载（Lazy Initialization）和线程安全特性。
 
@@ -1213,38 +1133,8 @@ wrapper(MyString("world")); // arg 是右值，forward 后仍为右值 → 调�
 - **提供全局访问点**：通过静态成员函数 `getInstance()` 控制实例的创建与访问，内部使用**局部静态变量**存储唯一实例，确保仅初始化一次。
 
 #### (2) 代码实现
-```cpp
-class Singleton {
-private:
-    // 1. 私有化默认构造函数（允许类内初始化，此处使用默认实现）
-    Singleton() = default;
 
-    // 2. 删除拷贝构造函数（禁止外部拷贝实例）
-    Singleton(const Singleton& other) = delete;
-
-    // 3. 删除复制赋值运算符（禁止外部赋值实例）
-    Singleton& operator=(const Singleton& other) = delete;
-
-    // （可选）C++11 及以上可删除移动构造和移动赋值，进一步杜绝转移实例
-    Singleton(Singleton&& other) = delete;
-    Singleton& operator=(Singleton&& other) = delete;
-
-public:
-    // 4. 全局访问点：返回类的唯一实例（局部静态变量确保仅初始化一次）
-    static Singleton& getInstance() {
-        // 局部静态变量特性：首次调用 getInstance() 时初始化，后续调用直接返回已存在的实例
-        static Singleton instance;
-        return instance;
-    }
-
-    // ------------------------------
-    // （示例）类的其他成员函数（非核心）
-    // ------------------------------
-    void doSomething() {
-        std::cout << "Singleton instance is working." << std::endl;
-    }
-};
-```
+跳转到[局部静态变量懒汉式实现代码](design_patterns/singleton/singleton.cpp)
 
 #### (3) 调用方式
 ```cpp
@@ -1264,11 +1154,7 @@ class Singleton {
 private:
     // 类内声明静态成员指针（存储实例地址）
     static Singleton* instance;
-
-    Singleton() = default;
-    Singleton(const Singleton&) = delete;
-    Singleton& operator=(const Singleton&) = delete;
-
+    // 省略私有化构造函数等操作
 public:
     static Singleton* getInstance() {
         // 注意：此代码在 C++11 前非线程安全（需手动加锁）
@@ -1558,11 +1444,11 @@ UDP的工作逻辑简单，无需连接管理，核心流程仅3步：
 占 6 位，保留为未来使用，目前一般置为 0。
 - **标志位**  
   - URG（Urgent）：紧急标志位。当URG = 1时，表示报文段中有紧急数据，应优先处理。此时紧急指针字段有效，用于指出紧急数据的末尾位置。
-  - ACK（Acknowledgment）：确认标志位。当ACK = 1时，确认号字段有效，用于对发送方的序号进行确认；在连接建立后，该位一般总是置为 1。
+  - <span style="color: red;">ACK（Acknowledgment）：确认标志位。</span>当ACK = 1时，确认号字段有效，用于对发送方的序号进行确认；在连接建立后，该位一般总是置为 1。
   - PSH（Push）：推送标志位。当PSH = 1时，要求接收方尽快将数据交付给应用层，而不是等到缓冲区满后再交付，可用于实现实时通信等场景。
   - RST（Reset）：重置标志位。当RST = 1时，表示 TCP 连接出现严重错误（如连接超时、端口未监听等），需要立即释放连接，然后重新建立连接。
-  - SYN（Synchronize）：同步标志位。用于建立 TCP 连接时的同步序号。在连接建立的 “三次握手” 过程中，发起连接的一方（客户端）发送的报文段中SYN = 1，表示请求建立连接；响应的一方（服务器）回复的报文段中SYN = 1且ACK = 1，表示同意建立连接。
-  - FIN（Finish）：终止标志位。当FIN = 1时，表示发送方已经没有数据要发送了，请求释放 TCP 连接。
+  - <span style="color: red;">SYN（Synchronize）：同步标志位。</span>用于建立 TCP 连接时的同步序号。在连接建立的 “三次握手” 过程中，发起连接的一方（客户端）发送的报文段中SYN = 1，表示请求建立连接；响应的一方（服务器）回复的报文段中SYN = 1且ACK = 1，表示同意建立连接。
+  - <span style="color: red;">FIN（Finish）：终止标志位。</span>当FIN = 1时，表示发送方已经没有数据要发送了，请求释放 TCP 连接。
 - **窗口**  
 占 16 位，用于流量控制。它表示接收方的接收缓冲区还能容纳的字节数，告诉发送方在未收到确认的情况下，最多可以发送多少字节的数据。发送方会根据这个窗口值来调整自己的发送速率，避免接收方的缓冲区溢出。  
 - **校验和**  

@@ -1094,7 +1094,25 @@ wrapper(MyString("world")); // arg 是右值，forward 后仍为右值 → 调�
 
 #### (2) 代码实现
 
-跳转到[局部静态变量懒汉式实现代码](design_patterns/singleton/singleton.cpp)
+```cpp
+class Singleton {
+private:
+    Singleton() = default;    // 1. 私有化默认构造函数
+    Singleton(const Singleton& other) = delete;// 2. 删除拷贝构造函数
+    Singleton& operator=(const Singleton& other) = delete;// 3. 删除复制赋值运算符
+    // （可选）C++11 及以上可删除移动构造和移动赋值，进一步杜绝转移实例
+    Singleton(Singleton&& other) = delete;
+    Singleton& operator=(Singleton&& other) = delete;
+
+public:
+    // 4. 全局访问点：返回类的唯一实例（局部静态变量确保仅初始化一次）
+    static Singleton& getInstance() {
+        // 局部静态变量特性：首次调用 getInstance() 时初始化，后续调用直接返回已存在的实例
+        static Singleton instance;
+        return instance;
+    }
+};
+```
 
 #### (3) 调用方式
 ```cpp
@@ -1102,7 +1120,6 @@ wrapper(MyString("world")); // arg 是右值，forward 后仍为右值 → 调�
 Singleton& instance = Singleton::getInstance();
 instance.doSomething(); // 调用实例的成员函数
 ```
-
 
 ### 4.1.2 关键注意事项
 #### (1) 静态成员变量的初始化规则
